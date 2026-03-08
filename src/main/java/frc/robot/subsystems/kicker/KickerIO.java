@@ -13,6 +13,7 @@ import edu.wpi.first.units.measure.Voltage;
 public interface KickerIO {
     @AutoLog
     public static class KickerIOInputs {
+        public boolean isConnected = false;
         public MutVoltage appliedVoltage = Units.Volts.mutable(0.0);
         public MutAngle angularPosition = Units.Rotations.mutable(0.0);
         public MutAngularVelocity angularVelocity = Units.RotationsPerSecond.mutable(0.0);
