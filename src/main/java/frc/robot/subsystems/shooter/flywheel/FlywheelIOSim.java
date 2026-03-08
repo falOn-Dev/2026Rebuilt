@@ -25,7 +25,7 @@ public class FlywheelIOSim implements FlywheelIO {
             FlywheelConstants.LEFT_FF.kV());
 
     private MutVoltage cachedVoltage = Units.Volts.mutable(0.0);
-    private boolean isOpenLoop = false;
+    private boolean isOpenLoop = true;
 
     @Override
     public void updateInputs(FlywheelIOInputs inputs) {
