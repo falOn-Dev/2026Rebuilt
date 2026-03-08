@@ -14,6 +14,7 @@ import edu.wpi.first.units.measure.Voltage;
 public interface FlywheelIO {
     @AutoLog
     public static class FlywheelIOInputs {
+        public boolean isConnected = false;
         public MutVoltage appliedVoltage = Units.Volts.mutable(0.0);
         public MutAngle angularPosition = Units.Rotations.mutable(0.0);
         public MutAngularVelocity angularVelocity = Units.RotationsPerSecond.mutable(0.0);

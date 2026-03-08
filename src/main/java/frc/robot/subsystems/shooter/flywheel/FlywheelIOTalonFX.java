@@ -4,11 +4,14 @@ import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.controls.NeutralOut;
 import com.ctre.phoenix6.controls.VelocityVoltage;
+import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 
+import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
@@ -27,8 +30,9 @@ public class FlywheelIOTalonFX implements FlywheelIO {
     private final StatusSignal<Current> supplyCurrent;
     private final StatusSignal<Current> statorCurrent;
 
-    private final VelocityVoltage velocityRequest = new VelocityVoltage(0.0)
-            .withEnableFOC(true);
+    private final VelocityVoltage velocityRequest = new VelocityVoltage(0.0);
+    private final VoltageOut voltageRequest = new VoltageOut(0.0);
+    private final NeutralOut neutralRequest = new NeutralOut();
 
     public FlywheelIOTalonFX(int motorId, boolean inverted, double gearing, PIDConstants pidConstants,
             FFConstants ffConstants) {
@@ -69,17 +73,28 @@ public class FlywheelIOTalonFX implements FlywheelIO {
 
     @Override
     public void updateInputs(FlywheelIOInputs inputs) {
+        inputs.isConnected = BaseStatusSignal.isAllGood(position, velocity, appliedVoltage, supplyCurrent, statorCurrent);
 
+        inputs.appliedVoltage.mut_replace(appliedVoltage.getValue());
+        inputs.angularPosition.mut_replace(position.getValue());
+        inputs.angularVelocity.mut_replace(velocity.getValue());
+        inputs.linearVelocity.mut_replace(inputs.angularVelocity.baseUnitMagnitude() * FlywheelConstants.FLYWHEEL_RADIUS.baseUnitMagnitude(), Units.MetersPerSecond);
+        inputs.supplyCurrent.mut_replace(supplyCurrent.getValue());
+        inputs.statorCurrent.mut_replace(statorCurrent.getValue());
     }
 
     @Override
     public void requestVoltage(Voltage voltage) {
+        motor.setControl(voltageRequest.withOutput(voltage));
     }
 
     @Override
     public void requestVelocity(AngularVelocity velocity) {
+        motor.setControl(velocityRequest.withVelocity(velocity));
     }
 
     @Override
     public void stop() {
+        motor.setControl(neutralRequest);
     }
+}

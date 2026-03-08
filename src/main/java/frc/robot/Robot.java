@@ -8,6 +8,7 @@
 package frc.robot;
 
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import frc.robot.util.LoggedTracer;
 import frc.robot.util.PhoenixUtil;
 
 import org.littletonrobotics.junction.LogFileUtil;
@@ -71,8 +72,12 @@ public class Robot extends LoggedRobot {
     /** This function is called periodically during all modes. */
     @Override
     public void robotPeriodic() {
+        LoggedTracer.reset();
         PhoenixUtil.refreshAll();
+        LoggedTracer.record("PhoenixRefresh");
+
         CommandScheduler.getInstance().run();
+        LoggedTracer.record("CommandRun");
     }
 
     /** This function is called once when the robot is disabled. */

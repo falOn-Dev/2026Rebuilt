@@ -41,6 +41,7 @@ public class FlywheelIOSim implements FlywheelIO {
 
         sim.update(Constants.LOOP_TIME);
 
+        inputs.isConnected = true;
         inputs.appliedVoltage.mut_replace(cachedVoltage);
         inputs.angularPosition.mut_replace(sim.getAngularPosition());
         inputs.angularVelocity.mut_replace(sim.getAngularVelocity());
