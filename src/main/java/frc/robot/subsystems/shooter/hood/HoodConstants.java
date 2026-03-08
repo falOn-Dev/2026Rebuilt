@@ -12,7 +12,7 @@ public final class HoodConstants {
     public static final int MOTOR_ID = 12;
     public static final boolean INVERTED = true;
 
-    public static final double HOOD_GEARING = 72.0;
+    public static final double GEARING = 72.0;
 
     public static final Angle MIN_ANGLE = Units.Degrees.of(0.0);
     public static final Angle MAX_ANGLE = Units.Degrees.of(30.0);

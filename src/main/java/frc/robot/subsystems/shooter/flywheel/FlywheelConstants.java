@@ -3,6 +3,7 @@ import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Distance;
+import edu.wpi.first.units.measure.MomentOfInertia;
 import frc.robot.util.FFConstants;
 import frc.robot.util.PIDConstants;
 
@@ -13,8 +14,8 @@ public final class FlywheelConstants {
     public static final boolean LEFT_INVERTED = false;
     public static final boolean RIGHT_INVERTED = true;
 
-    public static final double SHOOTER_GEARING = 36/32;
-    public static final AngularVelocity MAX_SPEED = Units.RPM.of(5800.0);
+    public static final double GEARING = 36/32;
+    public static final AngularVelocity MAX_SPEED = Units.RPM.of(5800.0).div(GEARING);
 
     public static final PIDConstants LEFT_PID = new PIDConstants(10, 0, 0);
     public static final PIDConstants RIGHT_PID = LEFT_PID;
@@ -23,6 +24,7 @@ public final class FlywheelConstants {
     public static final FFConstants RIGHT_FF = LEFT_FF;
 
     public static final Distance FLYWHEEL_RADIUS = Units.Inches.of(2.0);
+    public static final MomentOfInertia FLYWHEEL_MOI = Units.KilogramSquareMeters.of(0.0007528205);
 
     public static final Current STATOR_LIMIT = Units.Amps.of(120.0);
     public static final Current SUPPLY_LIMIT = Units.Amps.of(60.0);
