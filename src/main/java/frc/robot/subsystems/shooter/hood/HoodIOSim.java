@@ -6,39 +6,53 @@ import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.system.plant.LinearSystemId;
 import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.MomentOfInertia;
 import edu.wpi.first.units.measure.MutVoltage;
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.simulation.SingleJointedArmSim;
 import frc.robot.Constants;
-import sun.security.provider.DSAKeyPairGenerator.Current;
+import frc.robot.util.FFConstants;
+import frc.robot.util.PIDConstants;
 
 public class HoodIOSim implements HoodIO {
-    private final SingleJointedArmSim sim = new SingleJointedArmSim(
+    private final SingleJointedArmSim sim;
+    private PIDController pid;
+
+    private ArmFeedforward feedforward;
+
+    private MutVoltage cachedVoltage = Units.Volts.mutable(0.0);
+    private boolean isOpenLoop = true;
+
+    public HoodIOSim(
+        double gearing,
+        PIDConstants pidConstants,
+        FFConstants ffConstants,
+        MomentOfInertia moi
+    ) {
+        sim = new SingleJointedArmSim(
             LinearSystemId.createSingleJointedArmSystem(
                     DCMotor.getKrakenX44Foc(1),
-                    0.0342069049,
-                    HoodConstants.HOOD_GEARING),
+                    moi.in(Units.KilogramSquareMeters),
+                    gearing),
             DCMotor.getKrakenX44Foc(1),
-            HoodConstants.HOOD_GEARING,
+            gearing,
             0.23114,
             HoodConstants.MIN_ANGLE.in(Units.Radians),
             HoodConstants.MAX_ANGLE.in(Units.Radians),
             true,
             0.0);
 
-    private PIDController pid = new PIDController(
+        pid = new PIDController(
             HoodConstants.PID_CONSTANTS.kP(),
             HoodConstants.PID_CONSTANTS.kI(),
             HoodConstants.PID_CONSTANTS.kD());
 
-    private ArmFeedforward ff = new ArmFeedforward(
+        feedforward = new ArmFeedforward(
             HoodConstants.FF_CONSTANTS.kS(),
             HoodConstants.FF_CONSTANTS.kG(),
             HoodConstants.FF_CONSTANTS.kV(),
             HoodConstants.FF_CONSTANTS.kA());
-
-    private MutVoltage cachedVoltage = Units.Volts.mutable(0.0);
-    private boolean isOpenLoop = true;
+    }
 
     @Override
     public void updateInputs(HoodIOInputs inputs) {
@@ -50,6 +64,7 @@ public class HoodIOSim implements HoodIO {
         } else {
             cachedVoltage.mut_replace(pid.calculate(sim.getAngleRads() / (2 * Math.PI)),
                     Units.Volts);
+            cachedVoltage.mut_plus(feedforward.calculate(pid.getSetpoint() * (2 * Math.PI), 0.0), Units.Volts);
             sim.setInputVoltage(cachedVoltage.in(Units.Volts));
         }
 
