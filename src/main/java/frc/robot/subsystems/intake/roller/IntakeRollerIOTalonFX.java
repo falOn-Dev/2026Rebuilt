@@ -1,4 +1,4 @@
-package frc.robot.subsystems.shooter.flywheel;
+package frc.robot.subsystems.intake.roller;
 
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
@@ -21,7 +21,7 @@ import frc.robot.util.FFConstants;
 import frc.robot.util.PIDConstants;
 import frc.robot.util.PhoenixUtil;
 
-public class FlywheelIOTalonFX implements FlywheelIO {
+public class IntakeRollerIOTalonFX implements IntakeRollerIO {
     private final TalonFX motor;
 
     private final StatusSignal<Angle> position;
@@ -34,7 +34,11 @@ public class FlywheelIOTalonFX implements FlywheelIO {
     private final VoltageOut voltageRequest = new VoltageOut(0.0);
     private final NeutralOut neutralRequest = new NeutralOut();
 
-    public FlywheelIOTalonFX(int motorId, boolean inverted, double gearing, PIDConstants pidConstants,
+    public IntakeRollerIOTalonFX(
+            int motorId,
+            boolean inverted,
+            double gearing,
+            PIDConstants pidConstants,
             FFConstants ffConstants) {
         motor = new TalonFX(motorId, Constants.MECHANISM_CAN_BUS);
 
@@ -42,11 +46,11 @@ public class FlywheelIOTalonFX implements FlywheelIO {
         config.MotorOutput.Inverted = inverted ? InvertedValue.Clockwise_Positive
                 : InvertedValue.CounterClockwise_Positive;
         config.MotorOutput.NeutralMode = NeutralModeValue.Coast;
-        config.CurrentLimits.SupplyCurrentLimit = FlywheelConstants.SUPPLY_LIMIT.in(Units.Amps);
+        config.CurrentLimits.SupplyCurrentLimit = IntakeRollerConstants.SUPPLY_LIMIT.in(Units.Amps);
         config.CurrentLimits.SupplyCurrentLimitEnable = true;
-        config.CurrentLimits.StatorCurrentLimit = FlywheelConstants.STATOR_LIMIT.in(Units.Amps);
-        config.CurrentLimits.SupplyCurrentLimitEnable = true;
-        config.Feedback.SensorToMechanismRatio = FlywheelConstants.GEARING;
+        config.CurrentLimits.StatorCurrentLimit = IntakeRollerConstants.STATOR_LIMIT.in(Units.Amps);
+        config.CurrentLimits.StatorCurrentLimitEnable = true;
+        config.Feedback.SensorToMechanismRatio = gearing;
 
         config.Slot0 = new Slot0Configs()
                 .withKP(pidConstants.kP())
@@ -72,20 +76,22 @@ public class FlywheelIOTalonFX implements FlywheelIO {
     }
 
     @Override
-    public void updateInputs(FlywheelIOInputs inputs) {
+    public void updateInputs(IntakeIOInputs inputs) {
         inputs.isConnected = BaseStatusSignal.isAllGood(position, velocity, appliedVoltage, supplyCurrent, statorCurrent);
 
         inputs.appliedVoltage.mut_replace(appliedVoltage.getValue());
         inputs.angularPosition.mut_replace(position.getValue());
         inputs.angularVelocity.mut_replace(velocity.getValue());
-        inputs.linearVelocity.mut_replace(inputs.angularVelocity.baseUnitMagnitude() * FlywheelConstants.FLYWHEEL_RADIUS.baseUnitMagnitude(), Units.MetersPerSecond);
+        inputs.linearVelocity.mut_replace(
+                inputs.angularVelocity.in(Units.RadiansPerSecond) * IntakeRollerConstants.ROLLER_RADIUS.in(Units.Meters),
+                Units.MetersPerSecond);
         inputs.supplyCurrent.mut_replace(supplyCurrent.getValue());
         inputs.statorCurrent.mut_replace(statorCurrent.getValue());
     }
 
     @Override
-    public void requestVoltage(Voltage voltage) {
-        motor.setControl(voltageRequest.withOutput(voltage));
+    public void requestVoltage(Voltage volts) {
+        motor.setControl(voltageRequest.withOutput(volts));
     }
 
     @Override

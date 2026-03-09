@@ -15,7 +15,8 @@ import edu.wpi.first.units.measure.Voltage;
 public interface IntakeRollerIO {
 
     @AutoLog
-    public static class IntakeIOInputs {
+    public static class IntakeRollerIOInputs {
+        public boolean isConnected = false;
         public MutVoltage appliedVoltage = Units.Volts.mutable(0.0);
         public MutAngle angularPosition = Units.Rotation.mutable(0.0);
         public MutAngularVelocity angularVelocity = Units.RotationsPerSecond.mutable(0.0);
@@ -24,7 +25,7 @@ public interface IntakeRollerIO {
         public MutCurrent statorCurrent = Units.Amps.mutable(0.0);
     }
 
-    public default void updateInputs(IntakeIOInputs inputs) {
+    public default void updateInputs(IntakeRollerIOInputs inputs) {
     }
 
     public default void requestVoltage(Voltage volts) {

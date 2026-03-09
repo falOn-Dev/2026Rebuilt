@@ -16,6 +16,8 @@ import edu.wpi.first.units.measure.Voltage;
 public interface IntakeDeployIO {
     @AutoLog
     public static class IntakeDeployInputs {
+        public boolean isConnected = false;
+
         // Left Side Data
         public MutVoltage leftAppliedVoltage = Units.Volts.mutable(0.0);
         public MutAngle leftAngularPosition = Units.Rotations.mutable(0.0);
@@ -62,9 +64,15 @@ public interface IntakeDeployIO {
         stopRight();
     }
 
-    public default void setLeftEncoderPosition(Angle position) {}
-    public default void resetLeftEncoderPosition() {}
+    public default void setLeftEncoderPosition(Angle position) {
+    }
 
-    public default void setRightEncoderPosition(Angle position) {}
-    public default void resetRightEncoderPosition() {}
+    public default void resetLeftEncoderPosition() {
+    }
+
+    public default void setRightEncoderPosition(Angle position) {
+    }
+
+    public default void resetRightEncoderPosition() {
+    }
 }
