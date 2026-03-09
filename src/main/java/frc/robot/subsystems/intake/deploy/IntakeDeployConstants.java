@@ -1,10 +1,12 @@
 package frc.robot.subsystems.intake.deploy;
 
 import edu.wpi.first.units.Units;
+import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.LinearAcceleration;
 import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.units.measure.MomentOfInertia;
+import edu.wpi.first.units.measure.Voltage;
 import frc.robot.util.FFConstants;
 import frc.robot.util.PIDConstants;
 
@@ -32,4 +34,6 @@ public final class IntakeDeployConstants {
     public static final LinearVelocity MM_VELOCITY = Units.MetersPerSecond.of(2.0);
     public static final LinearAcceleration MM_ACCELERATION = Units.MetersPerSecondPerSecond.of(10.0);
 
+    public static final Current HOMING_THRESHOLD = Units.Amps.of(20.0);
+    public static final Voltage HOMING_VOLTAGE = Units.Volts.of(-3.0);
 }

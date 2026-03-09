@@ -40,7 +40,7 @@ public class IntakeRollerIOSim implements IntakeRollerIO {
     }
 
     @Override
-    public void updateInputs(IntakeIOInputs inputs) {
+    public void updateInputs(IntakeRollerIOInputs inputs) {
         if (isOpenLoop) {
             pid.reset();
             pid.setSetpoint(0.0);

@@ -1,10 +1,8 @@
 package frc.robot.subsystems.intake.roller;
 
-import java.util.function.DoubleSupplier;
-
 import org.littletonrobotics.junction.Logger;
 
-import edu.wpi.first.units.Units;
+import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
@@ -23,14 +21,14 @@ public class IntakeRoller extends SubsystemBase {
         Logger.processInputs("Intake/Roller", inputs);
     }
 
-    public Command genSpinRollerCommand(String name, DoubleSupplier speedSupplierRPS) {
+    public Command getIntakeCommand() {
         return this.runEnd(
-            () -> io.requestVelocity(Units.RotationsPerSecond.of(speedSupplierRPS.getAsDouble())),
+            () -> io.requestVelocity(IntakeRollerConstants.INTAKE_VELOCITY),
             io::stop
-        ).withName("IntakeSpinRoller- ");
+        ).withName("IntakeSpinRoller");
     }
 
-    public Command getStopRollerCommand(String name) {
+    public Command getStopRollerCommand() {
         return this.runOnce(() -> io.stop());
     }
 }

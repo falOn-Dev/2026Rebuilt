@@ -76,7 +76,7 @@ public class IntakeRollerIOTalonFX implements IntakeRollerIO {
     }
 
     @Override
-    public void updateInputs(IntakeIOInputs inputs) {
+    public void updateInputs(IntakeRollerIOInputs inputs) {
         inputs.isConnected = BaseStatusSignal.isAllGood(position, velocity, appliedVoltage, supplyCurrent, statorCurrent);
 
         inputs.appliedVoltage.mut_replace(appliedVoltage.getValue());
