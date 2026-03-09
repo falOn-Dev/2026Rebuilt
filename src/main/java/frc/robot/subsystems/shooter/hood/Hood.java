@@ -11,7 +11,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class Hood extends SubsystemBase {
     private HoodIO io;
-    private HoodIOInputsAutoLogged inputs = new HoodIOInputsAutoLogged();
+    public final HoodIOInputsAutoLogged inputs = new HoodIOInputsAutoLogged();
 
     public Hood(HoodIO io){
         super("Hood");

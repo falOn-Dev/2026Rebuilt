@@ -14,13 +14,16 @@ import org.littletonrobotics.junction.networktables.NT4Publisher;
 import org.littletonrobotics.junction.wpilog.WPILOGReader;
 import org.littletonrobotics.junction.wpilog.WPILOGWriter;
 
+import edu.wpi.first.units.Units;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.commands.DriveCommands;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.drive.Drive;
+import frc.robot.subsystems.drive.DriveConstants;
 import frc.robot.subsystems.drive.GyroIO;
 import frc.robot.subsystems.drive.GyroIOPigeon2;
 import frc.robot.subsystems.drive.ModuleIO;
@@ -45,7 +48,6 @@ import frc.robot.subsystems.kicker.KickerIOTalonFX;
 import frc.robot.subsystems.shooter.Shooter;
 import frc.robot.subsystems.shooter.aiming.AimingSystem;
 import frc.robot.subsystems.shooter.aiming.shooting.InterpolatingShootingCalc;
-import frc.robot.subsystems.shooter.aiming.shooting.ShootingCalc;
 import frc.robot.subsystems.shooter.flywheel.Flywheel;
 import frc.robot.subsystems.shooter.flywheel.FlywheelConstants;
 import frc.robot.subsystems.shooter.flywheel.FlywheelIO;
@@ -62,6 +64,7 @@ import frc.robot.subsystems.transfer.TransferIO;
 import frc.robot.subsystems.transfer.TransferIOSim;
 import frc.robot.subsystems.transfer.TransferIOTalonFX;
 import frc.robot.util.DoublePressTracker;
+import frc.robot.util.FuelSim;
 import frc.robot.util.LoggedTracer;
 import frc.robot.util.PhoenixUtil;
 import frc.robot.util.VirtualSubsystem;
@@ -81,6 +84,21 @@ public class Robot extends LoggedRobot {
     public final Kicker kicker;
     public final Transfer transfer;
     public final Shooter shooter;
+
+    // Keep track of fuel in hopper, also from 6328
+    public class SimFuelCount {
+        public static final int capacity = 40;
+        public static final double launchBPS = 5.0;
+
+        public int fuelStored;
+
+        public SimFuelCount(int fuelStored) {
+            this.fuelStored = fuelStored;
+        }
+    }
+
+    public FuelSim fuelSim;
+    public SimFuelCount simFuelCount;
 
     public final CommandXboxController controller = new CommandXboxController(0);
 
@@ -224,9 +242,13 @@ public class Robot extends LoggedRobot {
                                 HoodConstants.FF_CONSTANTS, HoodConstants.MOI)),
                         new Flywheel("LeftFlywheel",
                                 new FlywheelIOSim(FlywheelConstants.GEARING, FlywheelConstants.FLYWHEEL_MOI)),
-                        new Flywheel("LeftFlywheel",
+                        new Flywheel("RightFlywheel",
                                 new FlywheelIOSim(FlywheelConstants.GEARING, FlywheelConstants.FLYWHEEL_MOI)),
                         new AimingSystem(new InterpolatingShootingCalc()));
+
+                fuelSim = new FuelSim();
+                simFuelCount = new SimFuelCount(8);
+                configureFuelSim();
 
                 break;
             default:
@@ -257,11 +279,13 @@ public class Robot extends LoggedRobot {
                         });
 
                 shooter = new Shooter(
-                new Hood(new HoodIO() {}),
-                new Flywheel("LeftFlywheel", new FlywheelIO() {}),
-                new Flywheel("RightFlywheel", new FlywheelIO() {}),
-                new AimingSystem(new InterpolatingShootingCalc())
-            );
+                        new Hood(new HoodIO() {
+                        }),
+                        new Flywheel("LeftFlywheel", new FlywheelIO() {
+                        }),
+                        new Flywheel("RightFlywheel", new FlywheelIO() {
+                        }),
+                        new AimingSystem(new InterpolatingShootingCalc()));
                 break;
         }
 
@@ -277,16 +301,13 @@ public class Robot extends LoggedRobot {
                         () -> -controller.getRawAxis(3)));
 
         controller.axisGreaterThan(5, 0.5).whileTrue(
-            Commands.parallel(
-                shooter.autoAimAtHubCommand(drive::getPose, drive::getChassisSpeeds),
-                DriveCommands.joystickDriveAtAngle(
-                    drive,
-                    () -> -controller.getLeftY(),
-                    () -> -controller.getLeftX(),
-                    () -> shooter.aimingSystem.shootingCalc.getTargetDriveHeading()
-                )
-            )
-        );
+                Commands.parallel(
+                        shooter.autoAimAtHubCommand(drive::getPose, drive::getChassisSpeeds),
+                        DriveCommands.joystickDriveAtAngle(
+                                drive,
+                                () -> -controller.getLeftY(),
+                                () -> -controller.getLeftX(),
+                                () -> shooter.aimingSystem.shootingCalc.getTargetDriveHeading())));
 
         DoublePressTracker intakeRetractTracker = new DoublePressTracker(controller.leftTrigger());
         Trigger retractIntake = new Trigger(() -> intakeRetractTracker.get());
@@ -306,6 +327,40 @@ public class Robot extends LoggedRobot {
                         transfer.feed()));
     }
 
+    public void configureFuelSim() {
+        fuelSim.registerRobot(
+                DriveConstants.ROBOT_WIDTH,
+                DriveConstants.ROBOT_LENGTH,
+                DriveConstants.BUMPER_HEIGHT,
+                drive::getPose,
+                drive::getChassisSpeeds);
+
+        fuelSim.registerIntake(
+                DriveConstants.ROBOT_LENGTH.div(2.0),
+                DriveConstants.ROBOT_LENGTH.div(2.0).plus(Units.Inches.of(12.0)),
+                DriveConstants.ROBOT_WIDTH.div(-2.0),
+                DriveConstants.ROBOT_WIDTH.div(2.0),
+            () -> 
+                intake.isDeployed.getAsBoolean() 
+            && intake.roller.inputs.angularVelocity.gt(Units.RPM.of(100.0))
+            && simFuelCount.fuelStored < SimFuelCount.capacity,
+            () -> simFuelCount.fuelStored = Math.min(simFuelCount.fuelStored + 1, SimFuelCount.capacity)
+        );
+
+        fuelSim.setSubticks(1);
+        fuelSim.start();
+        // fuelSim.spawnStartingFuel();
+
+        RobotModeTriggers.autonomous()
+                .onTrue(
+                        Commands.runOnce(
+                                () -> {
+                                    fuelSim.clearFuel();
+                                    // fuelSim.spawnStartingFuel();
+                                    simFuelCount.fuelStored = 40;
+                                }));
+    }
+
     /** This function is called periodically during all modes. */
     @Override
     public void robotPeriodic() {
@@ -318,6 +373,24 @@ public class Robot extends LoggedRobot {
 
         VirtualSubsystem.periodicAll();
         LoggedTracer.record("VirtualSubsystemRun");
+    }
+
+    @Override
+    public void simulationPeriodic() {
+        if (fuelSim != null) {
+            fuelSim.updateSim();
+            Logger.recordOutput("FuelSim/FuelStored", simFuelCount.fuelStored);
+
+            if(kicker.inputs.angularVelocity.gt(Units.RPM.of(500)) && simFuelCount.fuelStored > 0) {
+                simFuelCount.fuelStored--;
+                fuelSim.launchFuel(
+                    shooter.leftFlywheel.inputs.linearVelocity,
+                    Units.Degrees.of(90.0).minus(shooter.hood.inputs.angularPosition),
+                    Units.Degrees.zero(),
+                    Units.Inches.of(19.0)
+                );
+            }
+        }
     }
 
     /** This function is called once when the robot is disabled. */
@@ -369,15 +442,4 @@ public class Robot extends LoggedRobot {
     @Override
     public void testPeriodic() {
     }
-
-    /** This function is called once when the robot is first started up. */
-    @Override
-    public void simulationInit() {
-    }
-
-    /** This function is called periodically whilst in simulation. */
-    @Override
-    public void simulationPeriodic() {
-    }
-
 }
