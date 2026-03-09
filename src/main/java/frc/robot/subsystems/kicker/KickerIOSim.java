@@ -21,7 +21,6 @@ public class KickerIOSim implements KickerIO {
 
     public KickerIOSim(
             double gearing,
-            FFConstants ffConstants,
             MomentOfInertia moi) {
         sim = new DCMotorSim(
                 LinearSystemId.createDCMotorSystem(
@@ -30,8 +29,7 @@ public class KickerIOSim implements KickerIO {
                         gearing),
                 DCMotor.getKrakenX60Foc(1));
 
-        feedforward = new SimpleMotorFeedforward(ffConstants.kS(),
-                ffConstants.kV());
+        feedforward = new SimpleMotorFeedforward(0.0, 0.312328767123);
     }
 
     @Override

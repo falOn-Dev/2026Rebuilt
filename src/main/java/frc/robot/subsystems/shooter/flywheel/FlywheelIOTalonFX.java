@@ -15,6 +15,7 @@ import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
+import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.units.measure.Voltage;
 import frc.robot.Constants;
 import frc.robot.util.FFConstants;
@@ -89,8 +90,15 @@ public class FlywheelIOTalonFX implements FlywheelIO {
     }
 
     @Override
-    public void requestVelocity(AngularVelocity velocity) {
+    public void requestAngularVelocity(AngularVelocity velocity) {
         motor.setControl(velocityRequest.withVelocity(velocity));
+    }
+
+    @Override
+    public void requestLinearVelocity(LinearVelocity velocity) {
+        requestAngularVelocity(
+                Units.RadiansPerSecond
+                        .of(velocity.in(Units.MetersPerSecond) / FlywheelConstants.FLYWHEEL_RADIUS.in(Units.Meters)));
     }
 
     @Override

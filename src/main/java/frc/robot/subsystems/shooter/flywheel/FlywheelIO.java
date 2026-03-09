@@ -4,6 +4,7 @@ import org.littletonrobotics.junction.AutoLog;
 
 import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.units.measure.MutAngle;
 import edu.wpi.first.units.measure.MutAngularVelocity;
 import edu.wpi.first.units.measure.MutCurrent;
@@ -29,7 +30,13 @@ public interface FlywheelIO {
     public default void requestVoltage(Voltage voltage) {
     }
 
-    public default void requestVelocity(AngularVelocity velocity) {
+    public default void requestAngularVelocity(AngularVelocity velocity) {
+    }
+
+    public default void requestLinearVelocity(LinearVelocity velocity) {
+        requestAngularVelocity(
+                Units.RadiansPerSecond
+                        .of(velocity.in(Units.MetersPerSecond) / FlywheelConstants.FLYWHEEL_RADIUS.in(Units.Meters)));
     }
 
     public default void stop() {

@@ -19,15 +19,12 @@ import frc.robot.util.UnitConversions;
 public class IntakeDeployIOSim implements IntakeDeployIO {
     private final DCMotorSim sim;
     private final PIDController pid;
-    private final ElevatorFeedforward feedforward;
 
     private boolean isOpenLoop = true;
     private MutVoltage cachedVoltage = Units.Volts.mutable(0.0);
 
     public IntakeDeployIOSim(
             double gearing,
-            PIDConstants pidConstants,
-            FFConstants ffConstants,
             MomentOfInertia moi) {
         sim = new DCMotorSim(
                 LinearSystemId.createDCMotorSystem(
@@ -36,16 +33,7 @@ public class IntakeDeployIOSim implements IntakeDeployIO {
                         gearing),
                 DCMotor.getKrakenX60Foc(2));
 
-        pid = new PIDController(
-                pidConstants.kP(),
-                pidConstants.kI(),
-                pidConstants.kD());
-
-        feedforward = new ElevatorFeedforward(
-                ffConstants.kS(),
-                ffConstants.kG(),
-                ffConstants.kV());
-
+        pid = new PIDController(100.0, 0.0, 0.0);
     }
 
     @Override

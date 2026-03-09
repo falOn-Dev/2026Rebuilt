@@ -15,7 +15,8 @@ public final class FlywheelConstants {
     public static final boolean RIGHT_INVERTED = true;
 
     public static final double GEARING = 36/32;
-    public static final AngularVelocity MAX_SPEED = Units.RPM.of(5800.0).div(GEARING);
+    public static final AngularVelocity MAX_VELOCITY = Units.RPM.of(5800.0).div(GEARING);
+    public static final AngularVelocity IDLE_VELOCITY = Units.RPM.of(2000.0);
 
     public static final PIDConstants LEFT_PID = new PIDConstants(10, 0, 0);
     public static final PIDConstants RIGHT_PID = LEFT_PID;

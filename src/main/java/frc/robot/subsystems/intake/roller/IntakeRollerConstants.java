@@ -14,7 +14,7 @@ public final class IntakeRollerConstants {
 
     public static final double GEARING = 32/12;
     public static final AngularVelocity MAX_VELOCITY = Units.RPM.of(7300).div(GEARING);
-    public static final AngularVelocity INTAKE_VELOCITY = Units.RPM.of(5000.0);
+    public static final AngularVelocity INTAKE_VELOCITY = Units.RPM.of(2000);
     public static final Distance ROLLER_RADIUS = Units.Inches.of(1.0);
     public static final MomentOfInertia MOI = Units.KilogramSquareMeters.of(0.0001519341);
 

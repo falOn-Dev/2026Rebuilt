@@ -1,0 +1,16 @@
+package frc.robot.subsystems.drive;
+
+import com.pathplanner.lib.path.PathConstraints;
+
+import edu.wpi.first.units.Units;
+import frc.robot.generated.TunerConstants;
+
+public final class DriveConstants {
+    public static final PathConstraints DEFAULT_CONSTRAINTS = new PathConstraints(TunerConstants.kSpeedAt12Volts,
+            Units.MetersPerSecondPerSecond.of(10.0), Units.RotationsPerSecond.of(2.0),
+            Units.RotationsPerSecondPerSecond.of(4.0));
+
+    public static final PathConstraints SIM_CONSTRAINTS = new PathConstraints(TunerConstants.kSpeedAt12Volts,
+            Units.MetersPerSecondPerSecond.of(100.0), Units.RotationsPerSecond.of(2.0),
+            Units.RotationsPerSecondPerSecond.of(40.0));
+}

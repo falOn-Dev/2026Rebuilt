@@ -6,6 +6,7 @@ import edu.wpi.first.units.measure.AngularAcceleration;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.MomentOfInertia;
+import edu.wpi.first.units.measure.Voltage;
 import frc.robot.util.FFConstants;
 import frc.robot.util.PIDConstants;
 
@@ -28,5 +29,8 @@ public final class HoodConstants {
     public static final AngularAcceleration MM_ACCEL = Units.RotationsPerSecondPerSecond.of(10.0);
 
     public static final MomentOfInertia MOI = Units.KilogramSquareMeters.of(0.0342069049);
+
+    public static final Current HOMING_THRESHOLD = Units.Amps.of(20.0);
+    public static final Voltage HOMING_VOLTAGE = Units.Volts.of(-3.0);
 
 }

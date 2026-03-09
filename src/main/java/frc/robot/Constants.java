@@ -24,6 +24,8 @@ public final class Constants {
     public static final Mode SIM_MODE = Mode.SIM;
     public static final Mode CURRENT_MODE = RobotBase.isReal() ? Mode.REAL : SIM_MODE;
 
+    public static final boolean DISABLE_HAL = false;
+
     public static final CANBus DRIVETRAIN_CAN_BUS = new CANBus("canivore");
     public static final CANBus MECHANISM_CAN_BUS = new CANBus("rio");
 

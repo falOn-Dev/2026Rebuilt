@@ -21,7 +21,6 @@ public class TransferIOSim implements TransferIO {
 
     public TransferIOSim(
             double gearing,
-            FFConstants ffConstants,
             MomentOfInertia moi) {
         sim = new DCMotorSim(
                 LinearSystemId.createDCMotorSystem(
@@ -30,10 +29,7 @@ public class TransferIOSim implements TransferIO {
                         gearing),
                 DCMotor.getKrakenX60Foc(1));
 
-        feedforward = new SimpleMotorFeedforward(
-                ffConstants.kS(),
-                ffConstants.kV(),
-                ffConstants.kA());
+        feedforward = new SimpleMotorFeedforward(0.0, 0.1655);
     }
 
     @Override

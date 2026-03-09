@@ -15,8 +15,10 @@ import org.littletonrobotics.junction.wpilog.WPILOGReader;
 import org.littletonrobotics.junction.wpilog.WPILOGWriter;
 
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.robot.commands.DriveCommands;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.GyroIO;
@@ -35,9 +37,34 @@ import frc.robot.subsystems.intake.roller.IntakeRollerConstants;
 import frc.robot.subsystems.intake.roller.IntakeRollerIO;
 import frc.robot.subsystems.intake.roller.IntakeRollerIOSim;
 import frc.robot.subsystems.intake.roller.IntakeRollerIOTalonFX;
+import frc.robot.subsystems.kicker.Kicker;
+import frc.robot.subsystems.kicker.KickerConstants;
+import frc.robot.subsystems.kicker.KickerIO;
+import frc.robot.subsystems.kicker.KickerIOSim;
+import frc.robot.subsystems.kicker.KickerIOTalonFX;
+import frc.robot.subsystems.shooter.Shooter;
+import frc.robot.subsystems.shooter.aiming.AimingSystem;
+import frc.robot.subsystems.shooter.aiming.shooting.InterpolatingShootingCalc;
+import frc.robot.subsystems.shooter.aiming.shooting.ShootingCalc;
+import frc.robot.subsystems.shooter.flywheel.Flywheel;
+import frc.robot.subsystems.shooter.flywheel.FlywheelConstants;
+import frc.robot.subsystems.shooter.flywheel.FlywheelIO;
+import frc.robot.subsystems.shooter.flywheel.FlywheelIOSim;
+import frc.robot.subsystems.shooter.flywheel.FlywheelIOTalonFX;
+import frc.robot.subsystems.shooter.hood.Hood;
+import frc.robot.subsystems.shooter.hood.HoodConstants;
+import frc.robot.subsystems.shooter.hood.HoodIO;
+import frc.robot.subsystems.shooter.hood.HoodIOSim;
+import frc.robot.subsystems.shooter.hood.HoodIOTalonFX;
+import frc.robot.subsystems.transfer.Transfer;
+import frc.robot.subsystems.transfer.TransferConstants;
+import frc.robot.subsystems.transfer.TransferIO;
+import frc.robot.subsystems.transfer.TransferIOSim;
+import frc.robot.subsystems.transfer.TransferIOTalonFX;
 import frc.robot.util.DoublePressTracker;
 import frc.robot.util.LoggedTracer;
 import frc.robot.util.PhoenixUtil;
+import frc.robot.util.VirtualSubsystem;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -51,6 +78,9 @@ import frc.robot.util.PhoenixUtil;
 public class Robot extends LoggedRobot {
     public final Drive drive;
     public final Intake intake;
+    public final Kicker kicker;
+    public final Transfer transfer;
+    public final Shooter shooter;
 
     public final CommandXboxController controller = new CommandXboxController(0);
 
@@ -121,6 +151,43 @@ public class Robot extends LoggedRobot {
                                         IntakeRollerConstants.GEARING,
                                         IntakeRollerConstants.PID_CONSTANTS,
                                         IntakeRollerConstants.FF_CONSTANTS)));
+
+                kicker = new Kicker(
+                        new KickerIOTalonFX(
+                                KickerConstants.MOTOR_ID,
+                                KickerConstants.INVERTED,
+                                KickerConstants.GEARING,
+                                KickerConstants.FF_CONSTANTS));
+
+                transfer = new Transfer(
+                        new TransferIOTalonFX(
+                                TransferConstants.MOTOR_ID,
+                                TransferConstants.INVERTED,
+                                TransferConstants.GEARING,
+                                TransferConstants.FF_CONSTANTS));
+
+                shooter = new Shooter(
+                        new Hood(new HoodIOTalonFX(
+                                HoodConstants.MOTOR_ID,
+                                HoodConstants.INVERTED,
+                                HoodConstants.GEARING,
+                                HoodConstants.PID_CONSTANTS,
+                                HoodConstants.FF_CONSTANTS,
+                                HoodConstants.MM_VELOCITY,
+                                HoodConstants.MM_ACCEL)),
+                        new Flywheel("LeftFlywheel", new FlywheelIOTalonFX(
+                                FlywheelConstants.LEFT_MOTOR_ID,
+                                FlywheelConstants.LEFT_INVERTED,
+                                FlywheelConstants.GEARING,
+                                FlywheelConstants.LEFT_PID,
+                                FlywheelConstants.LEFT_FF)),
+                        new Flywheel("RightFlywheel", new FlywheelIOTalonFX(
+                                FlywheelConstants.RIGHT_MOTOR_ID,
+                                FlywheelConstants.RIGHT_INVERTED,
+                                FlywheelConstants.GEARING,
+                                FlywheelConstants.RIGHT_PID,
+                                FlywheelConstants.RIGHT_FF)),
+                        new AimingSystem(new InterpolatingShootingCalc()));
                 break;
 
             case SIM:
@@ -136,15 +203,31 @@ public class Robot extends LoggedRobot {
                         new IntakeDeploy(
                                 new IntakeDeployIOSim(
                                         IntakeDeployConstants.GEARING,
-                                        IntakeDeployConstants.PID_CONSTANTS,
-                                        IntakeDeployConstants.FF_CONSTANTS,
                                         IntakeDeployConstants.MOI)),
                         new IntakeRoller(
                                 new IntakeRollerIOSim(
                                         IntakeRollerConstants.GEARING,
-                                        IntakeRollerConstants.PID_CONSTANTS,
-                                        IntakeRollerConstants.FF_CONSTANTS,
                                         IntakeRollerConstants.MOI)));
+
+                kicker = new Kicker(
+                        new KickerIOSim(
+                                KickerConstants.GEARING,
+                                KickerConstants.MOI));
+
+                transfer = new Transfer(
+                        new TransferIOSim(
+                                TransferConstants.GEARING,
+                                TransferConstants.ROLLER_MOI));
+
+                shooter = new Shooter(
+                        new Hood(new HoodIOSim(HoodConstants.GEARING, HoodConstants.PID_CONSTANTS,
+                                HoodConstants.FF_CONSTANTS, HoodConstants.MOI)),
+                        new Flywheel("LeftFlywheel",
+                                new FlywheelIOSim(FlywheelConstants.GEARING, FlywheelConstants.FLYWHEEL_MOI)),
+                        new Flywheel("LeftFlywheel",
+                                new FlywheelIOSim(FlywheelConstants.GEARING, FlywheelConstants.FLYWHEEL_MOI)),
+                        new AimingSystem(new InterpolatingShootingCalc()));
+
                 break;
             default:
                 drive = new Drive(
@@ -164,6 +247,21 @@ public class Robot extends LoggedRobot {
                         }),
                         new IntakeRoller(new IntakeRollerIO() {
                         }));
+
+                kicker = new Kicker(
+                        new KickerIO() {
+                        });
+
+                transfer = new Transfer(
+                        new TransferIO() {
+                        });
+
+                shooter = new Shooter(
+                new Hood(new HoodIO() {}),
+                new Flywheel("LeftFlywheel", new FlywheelIO() {}),
+                new Flywheel("RightFlywheel", new FlywheelIO() {}),
+                new AimingSystem(new InterpolatingShootingCalc())
+            );
                 break;
         }
 
@@ -171,15 +269,41 @@ public class Robot extends LoggedRobot {
     }
 
     public void configureBindings() {
+        drive.setDefaultCommand(
+                DriveCommands.joystickDrive(
+                        drive,
+                        () -> -controller.getLeftY(),
+                        () -> -controller.getLeftX(),
+                        () -> -controller.getRawAxis(3)));
+
+        controller.axisGreaterThan(5, 0.5).whileTrue(
+            Commands.parallel(
+                shooter.autoAimAtHubCommand(drive::getPose, drive::getChassisSpeeds),
+                DriveCommands.joystickDriveAtAngle(
+                    drive,
+                    () -> -controller.getLeftY(),
+                    () -> -controller.getLeftX(),
+                    () -> shooter.aimingSystem.shootingCalc.getTargetDriveHeading()
+                )
+            )
+        );
+
         DoublePressTracker intakeRetractTracker = new DoublePressTracker(controller.leftTrigger());
         Trigger retractIntake = new Trigger(() -> intakeRetractTracker.get());
 
-        // Deploy intake while left trigger is held and the intake has been homed since robot startup
-        // If the intake is already deployed it should just spin the roller up, untested currently
+        // Deploy intake while left trigger is held and the intake has been homed since
+        // robot startup
+        // If the intake is already deployed it should just spin the roller up, untested
+        // currently
         controller.leftTrigger().and(intake.isInit.negate()).whileTrue(intake.intake());
 
         // Pull intake in if its deployed and double tap trigger
         retractIntake.and(intake.isDeployed).onTrue(intake.stow());
+
+        controller.x().whileTrue(
+                Commands.parallel(
+                        kicker.feed(),
+                        transfer.feed()));
     }
 
     /** This function is called periodically during all modes. */
@@ -191,6 +315,9 @@ public class Robot extends LoggedRobot {
 
         CommandScheduler.getInstance().run();
         LoggedTracer.record("CommandRun");
+
+        VirtualSubsystem.periodicAll();
+        LoggedTracer.record("VirtualSubsystemRun");
     }
 
     /** This function is called once when the robot is disabled. */
@@ -252,4 +379,5 @@ public class Robot extends LoggedRobot {
     @Override
     public void simulationPeriodic() {
     }
+
 }

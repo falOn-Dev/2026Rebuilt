@@ -17,16 +17,12 @@ import frc.robot.util.PIDConstants;
 public class IntakeRollerIOSim implements IntakeRollerIO {
     private final DCMotorSim sim;
 
-    private final PIDController pid;
     private final SimpleMotorFeedforward feedforward;
 
     private final MutVoltage cachedVoltage = Units.Volts.mutable(0.0);
-    private boolean isOpenLoop = true;
 
     public IntakeRollerIOSim(
             double gearing,
-            PIDConstants pidConstants,
-            FFConstants ffConstants,
             MomentOfInertia moi) {
         sim = new DCMotorSim(
                 LinearSystemId.createDCMotorSystem(
@@ -35,22 +31,12 @@ public class IntakeRollerIOSim implements IntakeRollerIO {
                         gearing),
                 DCMotor.getKrakenX44Foc(1));
 
-        pid = new PIDController(pidConstants.kP(), pidConstants.kI(), pidConstants.kD());
-        feedforward = new SimpleMotorFeedforward(ffConstants.kS(), ffConstants.kV(), ffConstants.kA());
+        feedforward = new SimpleMotorFeedforward(0.0, 0.26301369863);
     }
 
     @Override
     public void updateInputs(IntakeRollerIOInputs inputs) {
-        if (isOpenLoop) {
-            pid.reset();
-            pid.setSetpoint(0.0);
-            sim.setInputVoltage(cachedVoltage.in(Units.Volts));
-        } else {
-            double output = pid.calculate(sim.getAngularVelocity().in(Units.RotationsPerSecond));
-            output += feedforward.calculate(pid.getSetpoint());
-            cachedVoltage.mut_replace(output, Units.Volts);
-            sim.setInputVoltage(cachedVoltage.in(Units.Volts));
-        }
+        sim.setInputVoltage(cachedVoltage.in(Units.Volts));
 
         sim.update(Constants.LOOP_TIME);
 
@@ -59,7 +45,8 @@ public class IntakeRollerIOSim implements IntakeRollerIO {
         inputs.angularPosition.mut_replace(sim.getAngularPosition());
         inputs.angularVelocity.mut_replace(sim.getAngularVelocity());
         inputs.linearVelocity.mut_replace(
-                inputs.angularVelocity.in(Units.RadiansPerSecond) * IntakeRollerConstants.ROLLER_RADIUS.in(Units.Meters),
+                inputs.angularVelocity.in(Units.RadiansPerSecond)
+                        * IntakeRollerConstants.ROLLER_RADIUS.in(Units.Meters),
                 Units.MetersPerSecond);
         inputs.supplyCurrent.mut_replace(sim.getCurrentDrawAmps(), Units.Amps);
         inputs.statorCurrent.mut_replace(inputs.supplyCurrent);
@@ -67,14 +54,13 @@ public class IntakeRollerIOSim implements IntakeRollerIO {
 
     @Override
     public void requestVoltage(Voltage volts) {
-        isOpenLoop = true;
         cachedVoltage.mut_replace(volts);
     }
 
     @Override
     public void requestVelocity(AngularVelocity velocity) {
-        isOpenLoop = false;
-        pid.setSetpoint(velocity.in(Units.RotationsPerSecond));
+        cachedVoltage.mut_replace(
+                feedforward.calculate(velocity.in(Units.RotationsPerSecond)), Units.Volts);
     }
 
     @Override
