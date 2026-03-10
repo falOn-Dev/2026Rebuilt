@@ -15,6 +15,7 @@ import org.littletonrobotics.junction.wpilog.WPILOGReader;
 import org.littletonrobotics.junction.wpilog.WPILOGWriter;
 
 import edu.wpi.first.units.Units;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -99,6 +100,8 @@ public class Robot extends LoggedRobot {
 
     public FuelSim fuelSim;
     public SimFuelCount simFuelCount;
+    public double secondsPerBall = 1 / 5.0;
+    public Timer bpsTimer;
 
     public final CommandXboxController controller = new CommandXboxController(0);
 
@@ -247,7 +250,9 @@ public class Robot extends LoggedRobot {
                         new AimingSystem(new InterpolatingShootingCalc()));
 
                 fuelSim = new FuelSim();
-                simFuelCount = new SimFuelCount(8);
+                simFuelCount = new SimFuelCount(40);
+                bpsTimer = new Timer();
+                bpsTimer.start();
                 configureFuelSim();
 
                 break;
@@ -340,12 +345,10 @@ public class Robot extends LoggedRobot {
                 DriveConstants.ROBOT_LENGTH.div(2.0).plus(Units.Inches.of(12.0)),
                 DriveConstants.ROBOT_WIDTH.div(-2.0),
                 DriveConstants.ROBOT_WIDTH.div(2.0),
-            () -> 
-                intake.isDeployed.getAsBoolean() 
-            && intake.roller.inputs.angularVelocity.gt(Units.RPM.of(100.0))
-            && simFuelCount.fuelStored < SimFuelCount.capacity,
-            () -> simFuelCount.fuelStored = Math.min(simFuelCount.fuelStored + 1, SimFuelCount.capacity)
-        );
+                () -> intake.isDeployed.getAsBoolean()
+                        && intake.roller.inputs.angularVelocity.gt(Units.RPM.of(100.0))
+                        && simFuelCount.fuelStored < SimFuelCount.capacity,
+                () -> simFuelCount.fuelStored = Math.min(simFuelCount.fuelStored + 1, SimFuelCount.capacity));
 
         fuelSim.setSubticks(1);
         fuelSim.start();
@@ -357,7 +360,7 @@ public class Robot extends LoggedRobot {
                                 () -> {
                                     fuelSim.clearFuel();
                                     // fuelSim.spawnStartingFuel();
-                                    simFuelCount.fuelStored = 40;
+                                    simFuelCount.fuelStored = 8;
                                 }));
     }
 
@@ -381,14 +384,16 @@ public class Robot extends LoggedRobot {
             fuelSim.updateSim();
             Logger.recordOutput("FuelSim/FuelStored", simFuelCount.fuelStored);
 
-            if(kicker.inputs.angularVelocity.gt(Units.RPM.of(500)) && simFuelCount.fuelStored > 0) {
+            if (kicker.inputs.angularVelocity.gt(Units.RPM.of(500))
+                    && simFuelCount.fuelStored > 0
+                    && bpsTimer.hasElapsed(secondsPerBall)) {
+                bpsTimer.reset();
                 simFuelCount.fuelStored--;
                 fuelSim.launchFuel(
-                    shooter.leftFlywheel.inputs.linearVelocity,
-                    Units.Degrees.of(90.0).minus(shooter.hood.inputs.angularPosition),
-                    Units.Degrees.zero(),
-                    Units.Inches.of(19.0)
-                );
+                        shooter.leftFlywheel.inputs.linearVelocity.div(2.0),
+                        Units.Degrees.of(90.0).minus(shooter.hood.inputs.angularPosition),
+                        Units.Degrees.zero(),
+                        Units.Inches.of(19.0));
             }
         }
     }
