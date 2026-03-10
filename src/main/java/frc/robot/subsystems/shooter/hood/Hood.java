@@ -4,6 +4,7 @@ import java.util.function.Supplier;
 
 import org.littletonrobotics.junction.Logger;
 
+import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -16,6 +17,7 @@ public class Hood extends SubsystemBase {
     public Hood(HoodIO io){
         super("Hood");
         this.io = io;
+        this.setDefaultCommand(stow());
     }
 
     @Override
@@ -29,6 +31,10 @@ public class Hood extends SubsystemBase {
             this.run(() -> io.requestVoltage(HoodConstants.HOMING_VOLTAGE)).until(() -> inputs.statorCurrent.gte(HoodConstants.HOMING_THRESHOLD)),
             this.runOnce(() -> io.resetEncoderPosition())
         );
+    }
+
+    public Command stow() {
+        return this.runOnce(() -> io.requestPosition(Units.Degrees.zero()));
     }
 
     public Command getRequestDynamicAngleCommand(Supplier<Angle> angleSupplier) {

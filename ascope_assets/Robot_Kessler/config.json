@@ -1,0 +1,30 @@
+{
+    "name": "Kessler",
+    "rotations": [
+        {
+            "axis": "x",
+            "degrees": 90
+        },
+        {
+            "axis": "z",
+            "degrees": 90
+        }
+    ],
+    "components": [
+        {
+            "zeroedRotations": [
+                { "axis": "x", "degrees": 90.0 },
+                { "axis": "z", "degrees": 90.0 }
+            ],
+            "zeroedPosition": [0.228600, 0.0, -0.450850]
+        },
+        {
+            "zeroedRotations": [
+                { "axis": "x", "degrees": 90.0 },
+                { "axis": "z", "degrees": 90.0 }
+            ],
+            "zeroedPosition": [0.0, 0.0, 0.0]
+        }
+
+    ]
+}

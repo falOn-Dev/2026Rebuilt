@@ -1,5 +1,8 @@
 package frc.robot.subsystems.shooter.hood;
 
+import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularAcceleration;
@@ -21,10 +24,10 @@ public final class HoodConstants {
 
     public static final PIDConstants PID_CONSTANTS = new PIDConstants(200.0, 0.0, 5.0);
     public static final FFConstants FF_CONSTANTS = new FFConstants(0.34, 7.0, 0.0, 0.04);
-    
+
     public static final Current STATOR_LIMIT = Units.Amps.of(80.0);
     public static final Current SUPPLY_LIMIT = Units.Amps.of(40.0);
-    
+
     public static final AngularVelocity MM_VELOCITY = Units.RotationsPerSecond.of(1.0);
     public static final AngularAcceleration MM_ACCEL = Units.RotationsPerSecondPerSecond.of(10.0);
 
@@ -32,5 +35,7 @@ public final class HoodConstants {
 
     public static final Current HOMING_THRESHOLD = Units.Amps.of(20.0);
     public static final Voltage HOMING_VOLTAGE = Units.Volts.of(-3.0);
+
+    public static final Transform3d HOOD_BASE = new Transform3d(-0.2286, 0.0, 0.45085, new Rotation3d());
 
 }

@@ -13,7 +13,7 @@ import frc.robot.Constants;
 
 public class IntakeDeploy extends SubsystemBase {
     private final IntakeDeployIO io;
-    private final IntakeDeployInputsAutoLogged inputs = new IntakeDeployInputsAutoLogged();
+    public final IntakeDeployInputsAutoLogged inputs = new IntakeDeployInputsAutoLogged();
 
     private final LinearFilter leftCurrentSpikeFilter = LinearFilter.singlePoleIIR(0.05, Constants.LOOP_TIME);
     private final Debouncer leftCurrentSpikeDebouncer = new Debouncer(0.1, DebounceType.kRising);

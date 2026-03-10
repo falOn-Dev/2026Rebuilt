@@ -1,10 +1,10 @@
 {
   "shooterHeight": 0.405541,
 
-  "rFly": 0.05,
-  "rRol": 0.508,
+  "rFly": 0.0508,
+  "rRol": 0.0,
   "rHood": 0.18415,
-  "fVelo": 1,
+  "fVelo": 0.0,
 
   "maxVFly": 27.0,
   "minVFly": 0.0,

@@ -39,7 +39,8 @@ public class InterpolatingShootingCalc implements ShootingCalc {
         double predictedToTargetY = this.aimPoint.getY() - predictedY;
 
         // Calculate distance and heading from predicted position to target
-        this.targetDriveHeading = Rotation2d.fromRadians(Math.atan2(predictedToTargetY, predictedToTargetX));
+        this.targetDriveHeading = Rotation2d.fromRadians(Math.atan2(predictedToTargetY, predictedToTargetX))
+                .rotateBy(Rotation2d.k180deg);
         this.effectiveDistance.mut_replace(Math.hypot(predictedToTargetX, predictedToTargetY), Units.Meters);
         Logger.recordOutput("Shooter/Aiming/effectiveDistance", this.effectiveDistance);
 
@@ -71,7 +72,7 @@ public class InterpolatingShootingCalc implements ShootingCalc {
     }
 
     @Override
-    public Rotation2d getTargetDriveHeading(){
+    public Rotation2d getTargetDriveHeading() {
         return this.targetDriveHeading;
     }
 
@@ -82,5 +83,6 @@ public class InterpolatingShootingCalc implements ShootingCalc {
 
     @Override
     public MutTime getTOF() {
-        return this.tof; }
+        return this.tof;
+    }
 }

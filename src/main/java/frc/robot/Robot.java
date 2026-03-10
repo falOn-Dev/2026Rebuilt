@@ -49,6 +49,7 @@ import frc.robot.subsystems.kicker.KickerIOTalonFX;
 import frc.robot.subsystems.shooter.Shooter;
 import frc.robot.subsystems.shooter.aiming.AimingSystem;
 import frc.robot.subsystems.shooter.aiming.shooting.InterpolatingShootingCalc;
+import frc.robot.subsystems.shooter.aiming.shooting.PhysicsShootingCalc;
 import frc.robot.subsystems.shooter.flywheel.Flywheel;
 import frc.robot.subsystems.shooter.flywheel.FlywheelConstants;
 import frc.robot.subsystems.shooter.flywheel.FlywheelIO;
@@ -247,10 +248,10 @@ public class Robot extends LoggedRobot {
                                 new FlywheelIOSim(FlywheelConstants.GEARING, FlywheelConstants.FLYWHEEL_MOI)),
                         new Flywheel("RightFlywheel",
                                 new FlywheelIOSim(FlywheelConstants.GEARING, FlywheelConstants.FLYWHEEL_MOI)),
-                        new AimingSystem(new InterpolatingShootingCalc()));
+                        new AimingSystem(new PhysicsShootingCalc()));
 
                 fuelSim = new FuelSim();
-                simFuelCount = new SimFuelCount(40);
+                simFuelCount = new SimFuelCount(10000);
                 bpsTimer = new Timer();
                 bpsTimer.start();
                 configureFuelSim();
@@ -392,10 +393,12 @@ public class Robot extends LoggedRobot {
                 fuelSim.launchFuel(
                         shooter.leftFlywheel.inputs.linearVelocity.div(2.0),
                         Units.Degrees.of(90.0).minus(shooter.hood.inputs.angularPosition),
-                        Units.Degrees.zero(),
+                        Units.Degrees.of(180.0),
                         Units.Inches.of(19.0));
             }
         }
+
+        MechanismVisualizer.getInstance().update(intake.deploy.inputs.rightLinearPosition, shooter.hood.inputs.angularPosition);
     }
 
     /** This function is called once when the robot is disabled. */

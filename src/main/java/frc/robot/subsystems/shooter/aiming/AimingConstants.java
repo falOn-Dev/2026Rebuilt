@@ -4,9 +4,18 @@ import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
 import edu.wpi.first.math.interpolation.InterpolatingTreeMap;
 import edu.wpi.first.math.interpolation.InverseInterpolator;
 import edu.wpi.first.units.Units;
+import edu.wpi.first.wpilibj.Filesystem;
 import frc.robot.subsystems.shooter.aiming.shooting.ShotData;
+import frc.robot.util.math.TwoVariablePolynomial3rdDegree;
 
 public final class AimingConstants {
+
+    public static final TwoVariablePolynomial3rdDegree hoodPolynomial = TwoVariablePolynomial3rdDegree
+            .from(Filesystem.getDeployDirectory().getPath() + "/hoodPolynomial.json");
+    public static final TwoVariablePolynomial3rdDegree flywheelPolynomial = TwoVariablePolynomial3rdDegree
+            .from(Filesystem.getDeployDirectory().getPath() + "/flywheelPolynomial.json");
+    public static final TwoVariablePolynomial3rdDegree tofPolynomial = TwoVariablePolynomial3rdDegree
+            .from(Filesystem.getDeployDirectory().getPath() + "/tofPolynomial.json");
 
     // Cant implement InverseInterpolator on Distance, so K is a double in meters :/
     public static final InterpolatingTreeMap<Double, ShotData> SHOT_DATA_MAP = new InterpolatingTreeMap<>(
@@ -31,5 +40,4 @@ public final class AimingConstants {
         TOF_MAP.put(5.8, 1.36);
         TOF_MAP.put(6.8, 1.41);
     }
-
 }
