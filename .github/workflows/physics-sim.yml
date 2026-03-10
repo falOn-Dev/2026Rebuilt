@@ -1,0 +1,45 @@
+name: Physics Sim
+
+on:
+  workflow_dispatch:
+
+jobs:
+  physics-sim:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v4
+
+      - name: Ensure deploy output directory exists
+        shell: bash
+        run: mkdir -p src/main/deploy
+
+      - name: Run physics sim on Linux
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          chmod +x ./tools/physicsSim/linux/BBP-Headless
+          ./tools/physicsSim/linux/BBP-Headless \
+            --inputpath ./tools/physicsSim/shooter.json \
+            --outputdir ./src/main/deploy/
+
+      - name: Run physics sim on Windows
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          ./tools/physicsSim/windows/BBP-Headless.exe `
+            --inputpath ./tools/physicsSim/shooter.json `
+            --outputdir ./src/main/deploy/
+
+      - name: Upload generated files
+        uses: actions/upload-artifact@v4
+        with:
+          name: physics-sim-${{ matrix.os }}
+          path: src/main/deploy/**
+          if-no-files-found: error
