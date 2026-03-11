@@ -30,6 +30,8 @@ import java.util.List;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 
+import com.pathplanner.lib.path.PathConstraints;
+
 public class DriveCommands {
   private static final double DEADBAND = 0.1;
   private static final double ANGLE_KP = 5.0;
@@ -64,7 +66,8 @@ public class DriveCommands {
       Drive drive,
       DoubleSupplier xSupplier,
       DoubleSupplier ySupplier,
-      DoubleSupplier omegaSupplier) {
+      DoubleSupplier omegaSupplier,
+      Supplier<PathConstraints> constraintsSupplier) {
     return Commands.run(
         () -> {
           // Get linear velocity
@@ -91,7 +94,8 @@ public class DriveCommands {
                   speeds,
                   isFlipped
                       ? drive.getRotation().plus(new Rotation2d(Math.PI))
-                      : drive.getRotation()));
+                      : drive.getRotation()),
+                      constraintsSupplier.get());
         },
         drive);
   }
@@ -105,7 +109,8 @@ public class DriveCommands {
       Drive drive,
       DoubleSupplier xSupplier,
       DoubleSupplier ySupplier,
-      Supplier<Rotation2d> rotationSupplier) {
+      Supplier<Rotation2d> rotationSupplier,
+      Supplier<PathConstraints> constraintsSupplier) {
 
     // Create PID controller
     ProfiledPIDController angleController =
@@ -142,7 +147,8 @@ public class DriveCommands {
                       speeds,
                       isFlipped
                           ? drive.getRotation().plus(new Rotation2d(Math.PI))
-                          : drive.getRotation()));
+                          : drive.getRotation()),
+                          constraintsSupplier.get());
             },
             drive)
 

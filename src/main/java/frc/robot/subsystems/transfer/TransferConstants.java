@@ -19,7 +19,7 @@ public final class TransferConstants {
     public static final Current STATOR_LIMIT = Units.Amps.of(120.0);
     public static final Current SUPPLY_LIMIT = Units.Amps.of(60.0);
 
-    public static final FFConstants FF_CONSTANTS = new FFConstants(0.05, 12.0 / MAX_VELOCITY.in(Units.RPM), 0.0, 0.0);
+    public static final FFConstants FF_CONSTANTS = new FFConstants(0.05, 12.0 / MAX_VELOCITY.in(Units.RotationsPerSecond), 0.0, 0.0);
 
     public static final Distance ROLLER_RADIUS = Units.Inches.of(0.625);
 

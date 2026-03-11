@@ -15,7 +15,7 @@ public final class KickerConstants {
     public static final AngularVelocity FEED_SPEED = Units.RPM.of(2000);
     public static final MomentOfInertia MOI = Units.KilogramSquareMeters.of(0.0006586766);
 
-    public static final FFConstants FF_CONSTANTS = new FFConstants(0.0, 0.0, 0.0, 0.0);
+    public static final FFConstants FF_CONSTANTS = new FFConstants(0.0, 12.0/MAX_SPEED.in(Units.RotationsPerSecond), 0.0, 0.0);
 
     public static final Current STATOR_LIMIT = Units.Amps.of(80.0);
     public static final Current SUPPLY_LIMIT = Units.Amps.of(60.0);

@@ -16,12 +16,13 @@ public final class FlywheelConstants {
 
     public static final double GEARING = 36/32;
     public static final AngularVelocity MAX_VELOCITY = Units.RPM.of(5800.0).div(GEARING);
-    public static final AngularVelocity IDLE_VELOCITY = Units.RPM.of(2000.0);
+    public static final AngularVelocity IDLE_VELOCITY = Units.RPM.of(1000.0);
+    public static final double EXIT_VEL_SCALAR = 0.4;
 
-    public static final PIDConstants LEFT_PID = new PIDConstants(10, 0, 0);
+    public static final PIDConstants LEFT_PID = new PIDConstants(0.5, 0, 0);
     public static final PIDConstants RIGHT_PID = LEFT_PID;
 
-    public static final FFConstants LEFT_FF = new FFConstants(0.1876, 0.002, 0, 0);
+    public static final FFConstants LEFT_FF = new FFConstants(0.1876, 0.147813590639, 0, 0);
     public static final FFConstants RIGHT_FF = LEFT_FF;
 
     public static final Distance FLYWHEEL_RADIUS = Units.Inches.of(2.0);

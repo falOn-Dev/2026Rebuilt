@@ -22,7 +22,6 @@ public class Flywheel extends SubsystemBase {
     public void periodic() {
         io.updateInputs(inputs);
         Logger.processInputs("Shooter/" + this.getName(), inputs);
-        this.setDefaultCommand(this.idle());
     }
 
     public Command getDynamicRequestAngularVelocityCommand(Supplier<AngularVelocity> velocitySupplier) {

@@ -1,5 +1,7 @@
 package frc.robot.subsystems.intake.roller;
 
+import static edu.wpi.first.units.Units.RotationsPerSecond;
+
 import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
@@ -18,8 +20,8 @@ public final class IntakeRollerConstants {
     public static final Distance ROLLER_RADIUS = Units.Inches.of(1.0);
     public static final MomentOfInertia MOI = Units.KilogramSquareMeters.of(0.0001519341);
 
-    public static final PIDConstants PID_CONSTANTS = new PIDConstants(10.0, 0.0, 0.0);
-    public static final FFConstants FF_CONSTANTS = new FFConstants(0.0, 0.12, 0.0, 0.0);
+    public static final PIDConstants PID_CONSTANTS = new PIDConstants(0.5, 0.0, 0.0);
+    public static final FFConstants FF_CONSTANTS = new FFConstants(0.0, 12.0/MAX_VELOCITY.in(RotationsPerSecond), 0.0, 0.0);
 
     public static final Current STATOR_LIMIT = Units.Amps.of(120.0);
     public static final Current SUPPLY_LIMIT = Units.Amps.of(60.0);

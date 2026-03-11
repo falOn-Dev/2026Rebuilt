@@ -14,6 +14,8 @@ import org.littletonrobotics.junction.networktables.NT4Publisher;
 import org.littletonrobotics.junction.wpilog.WPILOGReader;
 import org.littletonrobotics.junction.wpilog.WPILOGWriter;
 
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.units.Units;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
@@ -65,6 +67,10 @@ import frc.robot.subsystems.transfer.TransferConstants;
 import frc.robot.subsystems.transfer.TransferIO;
 import frc.robot.subsystems.transfer.TransferIOSim;
 import frc.robot.subsystems.transfer.TransferIOTalonFX;
+import frc.robot.subsystems.vision.Vision;
+import frc.robot.subsystems.vision.VisionConstants;
+import frc.robot.subsystems.vision.VisionIO;
+import frc.robot.subsystems.vision.VisionIOPhotonVision;
 import frc.robot.util.DoublePressTracker;
 import frc.robot.util.FuelSim;
 import frc.robot.util.LoggedTracer;
@@ -86,6 +92,7 @@ public class Robot extends LoggedRobot {
     public final Kicker kicker;
     public final Transfer transfer;
     public final Shooter shooter;
+    public final Vision vision;
 
     // Keep track of fuel in hopper, also from 6328
     public class SimFuelCount {
@@ -210,6 +217,14 @@ public class Robot extends LoggedRobot {
                                 FlywheelConstants.RIGHT_PID,
                                 FlywheelConstants.RIGHT_FF)),
                         new AimingSystem(new InterpolatingShootingCalc()));
+
+                vision = new Vision(
+                        drive::addVisionMeasurement,
+                        new VisionIOPhotonVision(VisionConstants.CAMERA_CONFIGS.get(0).name(), VisionConstants.CAMERA_CONFIGS.get(0).robotToCamera(), 0),
+                        new VisionIOPhotonVision(VisionConstants.CAMERA_CONFIGS.get(1).name(), VisionConstants.CAMERA_CONFIGS.get(1).robotToCamera(), 0)
+
+                );
+
                 break;
 
             case SIM:
@@ -248,7 +263,13 @@ public class Robot extends LoggedRobot {
                                 new FlywheelIOSim(FlywheelConstants.GEARING, FlywheelConstants.FLYWHEEL_MOI)),
                         new Flywheel("RightFlywheel",
                                 new FlywheelIOSim(FlywheelConstants.GEARING, FlywheelConstants.FLYWHEEL_MOI)),
-                        new AimingSystem(new PhysicsShootingCalc()));
+                        new AimingSystem(new InterpolatingShootingCalc()));
+
+                vision = new Vision(
+                        drive::addVisionMeasurement, 
+                        new VisionIO() {},
+                        new VisionIO () {}
+                );
 
                 fuelSim = new FuelSim();
                 simFuelCount = new SimFuelCount(10000);
@@ -292,37 +313,63 @@ public class Robot extends LoggedRobot {
                         new Flywheel("RightFlywheel", new FlywheelIO() {
                         }),
                         new AimingSystem(new InterpolatingShootingCalc()));
+
+                vision = new Vision(
+                        drive::addVisionMeasurement, 
+                        new VisionIO() {},
+                        new VisionIO () {}
+                );
+                
                 break;
         }
 
         configureBindings();
+
+        CommandScheduler.getInstance().onCommandInitialize((cmd) -> {
+                Logger.recordOutput("Commands/" + cmd.getSubsystem() +"/" + cmd.getName(), true);
+        });
+
+        CommandScheduler.getInstance().onCommandFinish((cmd) -> {
+                Logger.recordOutput("Commands/" + cmd.getSubsystem() +"/" + cmd.getName(), false);
+        });
     }
 
     public void configureBindings() {
+        // Defaults
+        shooter.leftFlywheel.setDefaultCommand(shooter.leftFlywheel.idle());
+        shooter.rightFlywheel.setDefaultCommand(shooter.rightFlywheel.idle());
+
+        Trigger homeOverrideTrigger = controller.start();
+
         drive.setDefaultCommand(
                 DriveCommands.joystickDrive(
                         drive,
                         () -> -controller.getLeftY(),
                         () -> -controller.getLeftX(),
-                        () -> -controller.getRawAxis(3)));
+                        () -> -controller.getRightX(),
+                        () -> controller.leftStick().getAsBoolean() ? DriveConstants.SLOWMODE_CONSTRAINTS : DriveConstants.DEFAULT_CONSTRAINTS));
 
-        controller.axisGreaterThan(5, 0.5).whileTrue(
+        controller.rightTrigger().whileTrue(
                 Commands.parallel(
                         shooter.autoAimAtHubCommand(drive::getPose, drive::getChassisSpeeds),
                         DriveCommands.joystickDriveAtAngle(
                                 drive,
                                 () -> -controller.getLeftY(),
                                 () -> -controller.getLeftX(),
-                                () -> shooter.aimingSystem.shootingCalc.getTargetDriveHeading())));
+                                () -> shooter.aimingSystem.shootingCalc.getTargetDriveHeading(),
+                                () -> controller.leftStick().getAsBoolean() ? DriveConstants.SLOWMODE_CONSTRAINTS : DriveConstants.DEFAULT_CONSTRAINTS )));
 
         DoublePressTracker intakeRetractTracker = new DoublePressTracker(controller.leftTrigger());
         Trigger retractIntake = new Trigger(() -> intakeRetractTracker.get());
+
+        controller.leftStick().and(controller.rightStick()).onTrue(Commands.runOnce(() -> drive.setPose(new Pose2d(new Translation2d(), drive.gyroInputs.yawPosition))));
 
         // Deploy intake while left trigger is held and the intake has been homed since
         // robot startup
         // If the intake is already deployed it should just spin the roller up, untested
         // currently
         controller.leftTrigger().and(intake.isInit.negate()).whileTrue(intake.intake());
+        controller.back().onTrue(intake.home());
 
         // Pull intake in if its deployed and double tap trigger
         retractIntake.and(intake.isDeployed).onTrue(intake.stow());
@@ -330,7 +377,7 @@ public class Robot extends LoggedRobot {
         controller.x().whileTrue(
                 Commands.parallel(
                         kicker.feed(),
-                        transfer.feed()));
+                        transfer.feed()).withName("FeedCommand"));
     }
 
     public void configureFuelSim() {
@@ -391,7 +438,7 @@ public class Robot extends LoggedRobot {
                 bpsTimer.reset();
                 simFuelCount.fuelStored--;
                 fuelSim.launchFuel(
-                        shooter.leftFlywheel.inputs.linearVelocity.div(2.0),
+                        shooter.leftFlywheel.inputs.linearVelocity.times(FlywheelConstants.EXIT_VEL_SCALAR + 0.025 - (Math.random() * 0.05)),
                         Units.Degrees.of(90.0).minus(shooter.hood.inputs.angularPosition),
                         Units.Degrees.of(180.0),
                         Units.Inches.of(19.0));
@@ -413,7 +460,7 @@ public class Robot extends LoggedRobot {
 
     @Override
     public void disabledExit() {
-        CommandScheduler.getInstance().schedule(intake.home());
+        // CommandScheduler.getInstance().schedule(intake.home());
     }
 
     /**

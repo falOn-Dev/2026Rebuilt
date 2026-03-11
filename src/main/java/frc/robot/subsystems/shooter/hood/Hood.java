@@ -17,7 +17,6 @@ public class Hood extends SubsystemBase {
     public Hood(HoodIO io){
         super("Hood");
         this.io = io;
-        this.setDefaultCommand(stow());
     }
 
     @Override

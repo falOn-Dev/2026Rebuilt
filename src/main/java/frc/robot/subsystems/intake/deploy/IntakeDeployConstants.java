@@ -31,7 +31,7 @@ public final class IntakeDeployConstants {
     public static final PIDConstants PID_CONSTANTS = new PIDConstants(4.0, 0.5, 0.0);
     public static final FFConstants FF_CONSTANTS = new FFConstants(0.0, 0.0, 0.0, 0.0);
 
-    public static final LinearVelocity MM_VELOCITY = Units.MetersPerSecond.of(2.0);
+    public static final LinearVelocity MM_VELOCITY = Units.MetersPerSecond.of(0.5);
     public static final LinearAcceleration MM_ACCELERATION = Units.MetersPerSecondPerSecond.of(10.0);
 
     public static final Current HOMING_THRESHOLD = Units.Amps.of(20.0);
